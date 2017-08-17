@@ -25,21 +25,21 @@ import (
 func main() {
 	router := httprouter.New()
 
-	router.POST("/api/v1/containerID",func(w http.ResponseWriter, r *http.Request, _ httprouter.Params){
-		kubeconfig := flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-		flag.Parse()
-		if *kubeconfig == "" {
-			panic("-kubeconfig not specified")
-		}
-		config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
-		if err != nil {
-			panic(err)
-		}
-		clientset, err := kubernetes.NewForConfig(config)
-		if err != nil {
-			panic(err)
-		}
+	kubeconfig := flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+	flag.Parse()
+	if *kubeconfig == "" {
+		panic("-kubeconfig not specified")
+	}
+	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	if err != nil {
+		panic(err)
+	}
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err)
+	}
 
+	router.POST("/api/v1/containerID",func(w http.ResponseWriter, r *http.Request, _ httprouter.Params){
 		podsClient := clientset.Pods(apiv1.NamespaceAll)
 
 		// List Pods
