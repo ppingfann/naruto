@@ -30,25 +30,29 @@ type Container_msg struct {
 func main() {
 	router := httprouter.New()
 
+	kubeconfig := flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+	flag.Parse()
+
+	if *kubeconfig == "" {
+		panic("-kubeconfig not specified")
+	}
+
+	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	if err != nil {
+		panic(err)
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+
+	if err != nil {
+		panic(err)
+	}
+
 	router.POST("/api/v1/containerID",func(w http.ResponseWriter, r *http.Request, _ httprouter.Params){
-		kubeconfig := flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-		flag.Parse()
-		if *kubeconfig == "" {
-			panic("-kubeconfig not specified")
-		}
-		config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
-		if err != nil {
-			panic(err)
-		}
-		clientset, err := kubernetes.NewForConfig(config)
-		if err != nil {
-			panic(err)
-		}
 
 		podsClient := clientset.Pods(apiv1.NamespaceAll)
 
 		// List Pods
-		fmt.Printf("Listing pods in namespace %q:\n", apiv1.NamespaceAll)
 		list, err := podsClient.List(metav1.ListOptions{
 		})
 		if err != nil {
@@ -77,7 +81,8 @@ func main() {
 		}
 	})
 
-	http.ListenAndServe(":8082", router)
+		http.ListenAndServe(":8082", router)
+
 }
 
 
